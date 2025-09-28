@@ -138,7 +138,7 @@ var (
 		for _, c := range cases {
 			res = append(res, echo.CallOptions{Port: c.Port})
 		}
-		return
+		return res
 	}()
 )
 
@@ -147,7 +147,7 @@ func OriginalSourceCheck(t framework.TestContext, src echo.Instance) echo.Checke
 	addresses := sets.New(src.WorkloadsOrFail(t).Addresses()...)
 	return check.Each(func(response echot.Response) error {
 		if !addresses.Contains(response.IP) {
-			return fmt.Errorf("expected original source (%v) to be propogated, but got %v", addresses.UnsortedList(), response.IP)
+			return fmt.Errorf("expected original source (%v) to be propagated, but got %v", addresses.UnsortedList(), response.IP)
 		}
 		return nil
 	})
@@ -2215,7 +2215,7 @@ func getSupportedIPFamilies(t framework.TestContext) (v4 bool, v6 bool) {
 	if !v4 && !v6 {
 		t.Fatalf("pod is neither v4 nor v6? %v", addrs)
 	}
-	return
+	return v4, v6
 }
 
 func TestServiceEntrySelectsWorkloadEntry(t *testing.T) {

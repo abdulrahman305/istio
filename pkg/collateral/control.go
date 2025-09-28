@@ -1,5 +1,4 @@
 //go:build !agent
-// +build !agent
 
 // Copyright Istio Authors
 //
@@ -16,7 +15,7 @@
 // limitations under the License.
 
 /*
-NOTICE: The zsh constants are derived from the kubectl completion code,
+NOTICE: The zsh constants are derived from the kubectl completion code
 (k8s.io/kubernetes/pkg/kubectl/cmd/completion/completion.go), with the
 following copyright/license:
 
@@ -380,7 +379,7 @@ func buildNestedMap(flatMap map[string]string) (result map[string]any) {
 	for complexkey, value := range flatMap {
 		buildMapRecursive(strings.Split(complexkey, "."), result, value)
 	}
-	return
+	return result
 }
 
 func buildMapRecursive(remainingPath []string, currentPointer map[string]any, value string) {
@@ -660,7 +659,7 @@ func unquoteUsage(flag *pflag.Flag) (name string, usage string) {
 		name = "uint"
 	}
 
-	return
+	return name, usage
 }
 
 func normalizeID(id string) string {

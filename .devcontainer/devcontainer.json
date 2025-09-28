@@ -1,6 +1,6 @@
 {
   "name": "istio build-tools",
-  "image": "gcr.io/istio-testing/build-tools:master-8946051100dffaf26dd813f2ce0bbc86c15f1086",
+  "image": "gcr.io/istio-testing/build-tools:master-2683149c033b2b71ab460170c3045ae85727306e",
   "privileged": true,
   "remoteEnv": {
     "USE_GKE_GCLOUD_AUTH_PLUGIN": "True",

@@ -27,6 +27,7 @@ import (
 	"istio.io/istio/pkg/config/protocol"
 	"istio.io/istio/pkg/config/schema/gvk"
 	"istio.io/istio/pkg/monitoring"
+	"istio.io/istio/pkg/util/protomarshal"
 	"istio.io/istio/pkg/util/sets"
 )
 
@@ -191,7 +192,7 @@ func mergeGateways(gateways []gatewayWithInstances, proxy *Proxy, ps *PushContex
 				RecordRejectedConfig(gatewayName)
 				continue
 			}
-			sanitizeServerHostNamespace(s, gatewayConfig.Namespace)
+			s := sanitizeServerHostNamespace(s, gatewayConfig.Namespace)
 			gatewayNameForServer[s] = gatewayName
 			log.Debugf("mergeGateways: gateway %q processing server %s :%v", gatewayName, s.Name, s.Hosts)
 
@@ -548,46 +549,52 @@ func ParseGatewayRDSRouteName(name string) (portNumber int, portName, gatewayNam
 		// this is a http gateway. Parse port number and return empty string for rest
 		port := name[len("http."):]
 		portNumber, _ = strconv.Atoi(port)
-		return
+		return portNumber, portName, gatewayName
 	} else if strings.HasPrefix(name, "https.") && strings.Count(name, ".") == 4 {
 		name = name[len("https."):]
 		// format: https.<port>.<port_name>.<gw name>.<gw namespace>
 		portNums, rest, ok := strings.Cut(name, ".")
 		if !ok {
-			return
+			return portNumber, portName, gatewayName
 		}
 		portNumber, _ = strconv.Atoi(portNums)
 		portName, rest, ok = strings.Cut(rest, ".")
 		if !ok {
-			return
+			return portNumber, portName, gatewayName
 		}
 		gwName, gwNs, ok := strings.Cut(rest, ".")
 		if !ok {
-			return
+			return portNumber, portName, gatewayName
 		}
 		gatewayName = gwNs + "/" + gwName
 	}
-	return
+	return portNumber, portName, gatewayName
 }
 
 // convert ./host to currentNamespace/Host
 // */host to just host
 // */* to just *
-func sanitizeServerHostNamespace(server *networking.Server, namespace string) {
+func sanitizeServerHostNamespace(server *networking.Server, namespace string) *networking.Server {
+	needsClone := true
 	for i, h := range server.Hosts {
 		if strings.Contains(h, "/") {
 			parts := strings.Split(h, "/")
+			if needsClone {
+				server = protomarshal.Clone(server)
+				needsClone = false
+			}
 			if parts[0] == "." {
 				server.Hosts[i] = namespace + "/" + parts[1] // format: %s/%s
 			} else if parts[0] == "*" {
 				if parts[1] == "*" {
 					server.Hosts = []string{"*"}
-					return
+					continue
 				}
 				server.Hosts[i] = parts[1]
 			}
 		}
 	}
+	return server
 }
 
 type GatewayPortMap map[int]sets.Set[int]
